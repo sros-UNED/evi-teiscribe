@@ -1,0 +1,58 @@
+INFO - 11:44:02: Java PackageFragment com.application was translated as UML ModelImpl TeiScribe
+WARNING - 11:44:02: First conversion pass
+INFO - 11:44:02: Entering Java PackageFragment com.application
+ERROR - 11:44:02: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/Manager/DTDManager.java; systemId: file:///TextEditor/src/com/application/components/Manager/DTDManager.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.handleDemandLoadException(ResourceSetImpl.java:319)
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoadHelper(ResourceSetImpl.java:278)
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.getResource(ResourceSetImpl.java:406)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.load(AbstractJava2UMLConverter.java:2274)
+org.eclipse.umlgen.reverse.java.Java2UMLConverter.initializeModel(Java2UMLConverter.java:110)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:347)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.doConvertion(AbstractJava2UMLConverter.java:546)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:256)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:2248)
+org.eclipse.umlgen.reverse.java.diagram.PrototypeJava2UMLWizard.doFinish(PrototypeJava2UMLWizard.java:144)
+org.eclipse.umlgen.reverse.java.internal.wizards.Java2UMLWizard$1.run(Java2UMLWizard.java:104)
+org.eclipse.jface.operation.ModalContext$ModalContextThread.run(ModalContext.java:119)
+ERROR - 11:44:02: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/Manager/DTDManager.java; systemId: file:///TextEditor/src/com/application/components/Manager/DTDManager.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.throwCoreException(AbstractJava2UMLConverter.java:2216)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.load(AbstractJava2UMLConverter.java:2281)
+org.eclipse.umlgen.reverse.java.Java2UMLConverter.initializeModel(Java2UMLConverter.java:110)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:347)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.doConvertion(AbstractJava2UMLConverter.java:546)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:256)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:2248)
+org.eclipse.umlgen.reverse.java.diagram.PrototypeJava2UMLWizard.doFinish(PrototypeJava2UMLWizard.java:144)
+org.eclipse.umlgen.reverse.java.internal.wizards.Java2UMLWizard$1.run(Java2UMLWizard.java:104)
+org.eclipse.jface.operation.ModalContext$ModalContextThread.run(ModalContext.java:119)
+INFO - 11:44:04: Java PackageFragment com.application was translated as UML ModelImpl TeiScribe
+WARNING - 11:44:04: First conversion pass
+INFO - 11:44:04: Entering Java PackageFragment com.application
+ERROR - 11:44:04: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/Manager/DTDManager.java; systemId: file:///TextEditor/src/com/application/components/Manager/DTDManager.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.handleDemandLoadException(ResourceSetImpl.java:319)
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.demandLoadHelper(ResourceSetImpl.java:278)
+org.eclipse.emf.ecore.resource.impl.ResourceSetImpl.getResource(ResourceSetImpl.java:406)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.load(AbstractJava2UMLConverter.java:2274)
+org.eclipse.umlgen.reverse.java.Java2UMLConverter.initializeModel(Java2UMLConverter.java:110)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:347)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.doConvertion(AbstractJava2UMLConverter.java:546)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:256)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:2248)
+org.eclipse.umlgen.reverse.java.diagram.PrototypeJava2UMLWizard.doFinish(PrototypeJava2UMLWizard.java:144)
+org.eclipse.umlgen.reverse.java.internal.wizards.Java2UMLWizard$1.run(Java2UMLWizard.java:104)
+org.eclipse.jface.operation.ModalContext$ModalContextThread.run(ModalContext.java:119)
+ERROR - 11:44:04: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/Manager/DTDManager.java; systemId: file:///TextEditor/src/com/application/components/Manager/DTDManager.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.throwCoreException(AbstractJava2UMLConverter.java:2216)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.load(AbstractJava2UMLConverter.java:2281)
+org.eclipse.umlgen.reverse.java.Java2UMLConverter.initializeModel(Java2UMLConverter.java:110)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:347)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.doConvertion(AbstractJava2UMLConverter.java:546)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:256)
+org.eclipse.umlgen.reverse.java.AbstractJava2UMLConverter.convert(AbstractJava2UMLConverter.java:2248)
+org.eclipse.umlgen.reverse.java.diagram.PrototypeJava2UMLWizard.doFinish(PrototypeJava2UMLWizard.java:144)
+org.eclipse.umlgen.reverse.java.internal.wizards.Java2UMLWizard$1.run(Java2UMLWizard.java:104)
+org.eclipse.jface.operation.ModalContext$ModalContextThread.run(ModalContext.java:119)
+WARNING - 11:44:34: Convert com.application
+WARNING - 11:44:34: First conversion pass
+ERROR - 11:44:34: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; systemId: file:///TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.
+ERROR - 11:44:34: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; systemId: file:///TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.

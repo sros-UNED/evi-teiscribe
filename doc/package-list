@@ -1,0 +1,12 @@
+com.application.components
+com.application.components.Manager
+com.application.components.TEITextStruct
+com.application.components.dtdParser
+com.application.components.dtdParser.utils
+com.application.components.dtdParser.xmlutils
+com.application.language
+com.application.texteditor
+com.application.views
+com.application.widgets
+com.application.widgets.client.TextEditor
+com.application.widgets.client.TextEditorElements
