@@ -6,6 +6,7 @@ import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.logging.Level;
 
 import com.application.components.Broadcaster.BroadcastListener;
 import com.application.components.Manager.DTDManager;
@@ -24,34 +25,39 @@ import static com.application.components.Constants.UNDOMAXSIZE;
 /**
  * Class to store the data needed for the edition view
  * 
- * @author Miguel Urï¿½zar Salinas
+ * @author Miguel Urízar Salinas
  *
  */
 public class FileRegistration implements Serializable {
     private static final long serialVersionUID = -422519211517143137L;
     /** Id of the file */
     String fileId;
-    /** Name of the environment*/
+    /** Name of the environment */
     String env;
-    /** Name of the project*/
+    /** Name of the project */
     String project;
-    /** Name of the file*/
+    /** Name of the file */
     String file;
     /** File manager to define the schema */
     public FileManager manager;
     /** File struct to work with */
     public TextStruct fileStruct;
-    /** List to undo and redo*/
+    /** List to undo and redo */
     private undoClass undoList;
     /** UIs linked to the file */
     List<BroadcastListener> listeners;
 
     /**
      * Constructor for FileRegistration that also creates the listener list
-     * @param env Environment of the file
-     * @param project Project inside the environment
-     * @param file Name of the file
-     * @param listener Listener of the UI that is opening the file
+     * 
+     * @param env
+     *            Environment of the file
+     * @param project
+     *            Project inside the environment
+     * @param file
+     *            Name of the file
+     * @param listener
+     *            Listener of the UI that is opening the file
      */
     public FileRegistration(String env, String project, String file, BroadcastListener listener) {
 	fileId = env + "/" + project + "/" + file;
@@ -62,24 +68,28 @@ public class FileRegistration implements Serializable {
 	listeners.add(listener);
 	// Load the TEI schema
 	try {
-	    manager = new DTDManager(new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getBinaryFile(env,project, TEIPROJECTNAME), StandardCharsets.UTF_8),STRINGTYPE);
+	    manager = new DTDManager(
+		    new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getBinaryFile(env, project, TEIPROJECTNAME), StandardCharsets.UTF_8),
+		    STRINGTYPE);
 	} catch (Exception e) {
-	    //TODO add message
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error opening schema \"" + TEIPROJECTNAME + "\"  for project \"" + env + "/" + project + "\".",
+		    true);
 	    // If not possible to open TEI structure, no structure is used
 	    manager = null;
 	}
 	// Load TEI file
 	try {
-	    fileStruct = new TextStruct(  new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getXMLFile(env,project, file), StandardCharsets.UTF_8),STRINGTYPE);
+	    fileStruct = new TextStruct(new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getXMLFile(env, project, file), StandardCharsets.UTF_8),
+		    STRINGTYPE);
 	} catch (Exception e) {
-	    //TODO add message
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error opening file \"" + file + "\"  for project \"" + env + "/" + project + "\".", true);
 	    // If not possible to open TEI file, a generic one is used
 	    if (fileStruct == null) {
 		System.out.println("No file exported");
 		fileStruct = new TextStruct();
 	    }
 	}
-	undoList = new undoClass(UNDOMAXSIZE,fileStruct);
+	undoList = new undoClass(UNDOMAXSIZE, fileStruct);
     }
 
     /**
@@ -92,10 +102,12 @@ public class FileRegistration implements Serializable {
      * @return 0 if success, -1 if node does not exist or the number of attributes that generated error.
      */
     public int AddModifyAttributes(AttributeSenderStruct[] attributesToSend, int id) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (newFileStruct.AddModifyAttributes(attributesToSend, id) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (newFileStruct.AddModifyAttributes(attributesToSend, id) != 0){
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating attributes of label with id \"" + id + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
 	saveFileAndpdateUIs(Labels.getString("attributesUpdated"));
 	undoList.add(fileStruct);
 	return 0;
@@ -111,16 +123,19 @@ public class FileRegistration implements Serializable {
      * @return 0 if success or -1 if node does not exist
      */
     public int ModifyBeginningText(String innerText, int id) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (fileStruct.ModifyBeginningText(innerText, id) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.ModifyBeginningText(innerText, id) != 0){
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating beggining of text \"" + innerText + "\" of label with id \"" + id + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
+	    
 	saveFileAndpdateUIs(Labels.getString("textModified"));
 	undoList.add(fileStruct);
 	newFileStruct = null;
 	return 0;
     }
-    
+
     /**
      * Changes the beginning text of the label defined by id without changing the UIs.
      * 
@@ -131,10 +146,12 @@ public class FileRegistration implements Serializable {
      * @return 0 if success or -1 if node does not exist
      */
     public int ModifyBeginningTextNoChanges(String innerText, int id) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (fileStruct.ModifyBeginningText(innerText, id) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.ModifyBeginningText(innerText, id) != 0) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating, without changing UI, beggining of text \"" + innerText + "\" of label with id \"" + id + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
 	newFileStruct = null;
 	return 0;
     }
@@ -149,16 +166,18 @@ public class FileRegistration implements Serializable {
      * @return 0 if success or -1 if node does not exist
      */
     public int ModifyEndingText(String innerText, int id) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (fileStruct.ModifyEndingText(innerText, id) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.ModifyEndingText(innerText, id) != 0) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating ending of text \"" + innerText + "\" of label with id \"" + id + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
 	saveFileAndpdateUIs(Labels.getString("textModified"));
 	undoList.add(fileStruct);
 	newFileStruct = null;
 	return 0;
     }
-    
+
     /**
      * Changes the ending text of the label defined by id without changing the UIs.
      * 
@@ -169,10 +188,12 @@ public class FileRegistration implements Serializable {
      * @return 0 if success or -1 if node does not exist
      */
     public int ModifyEndingTextNoChanges(String innerText, int id) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-       fileStruct = newFileStruct;
-	if (fileStruct.ModifyEndingText(innerText, id) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.ModifyEndingText(innerText, id) != 0) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating, without changing UI, ending of text \"" + innerText + "\" of label with id \"" + id + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
 	newFileStruct = null;
 	return 0;
     }
@@ -185,10 +206,13 @@ public class FileRegistration implements Serializable {
      * @return 0 if success or -1 if node does not exist
      */
     public int removeLabel(int id) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (fileStruct.removeLabel(id) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.removeLabel(id) != 0) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error removing label with id \"" + id + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
+	    
 	saveFileAndpdateUIs(Labels.getString("labelRemoved"));
 	undoList.add(fileStruct);
 	return 0;
@@ -204,10 +228,12 @@ public class FileRegistration implements Serializable {
      * @return 0 if success or -1 if node does not exist
      */
     public int changeLabel(int labelId, String newLabelName) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (fileStruct.changeLabel(labelId, newLabelName) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.changeLabel(labelId, newLabelName) != 0) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error changing label name to \"" + newLabelName + "\" for label with id \"" + labelId + "\"  for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
 	saveFileAndpdateUIs(Labels.getString("labelChanged"));
 	undoList.add(fileStruct);
 	return 0;
@@ -230,10 +256,14 @@ public class FileRegistration implements Serializable {
      *            Offset where the text ends.
      */
     public int createLabel(int parentId, String newLabelName, int beginTextId, int beginTextOffset, int endTextId, int endTextOffset) {
-    TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
-    fileStruct = newFileStruct;
-	if (fileStruct.createLabel(parentId, newLabelName, beginTextId, beginTextOffset, endTextId, endTextOffset) != 0)
+	TextStruct newFileStruct = org.apache.commons.lang3.SerializationUtils.clone(fileStruct);
+	fileStruct = newFileStruct;
+	if (fileStruct.createLabel(parentId, newLabelName, beginTextId, beginTextOffset, endTextId, endTextOffset) != 0) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error creating label from parent label with id \"" + parentId + "\". Error creating label with label name \"" 
+		    + newLabelName + "\" starting in label with id \"" + beginTextId + "\" at offset \"" + beginTextOffset + "\" and ending in label with id \"" + endTextId 
+		    + "\" at offset \"" + endTextOffset +  "\" for file \"" + env + "/" + project + "/" + file + "\".", true);
 	    return -1;
+	}
 	saveFileAndpdateUIs(Labels.getString("labelCreated"));
 	undoList.add(fileStruct);
 	return 0;
@@ -243,17 +273,18 @@ public class FileRegistration implements Serializable {
      * Redo the next change
      */
     public void redo() {
-    	fileStruct = undoList.redo();
-    	saveFileAndpdateUIs(Labels.getString("redoFile"));
+	fileStruct = undoList.redo();
+	saveFileAndpdateUIs(Labels.getString("redoFile"));
     }
+
     /**
      * Undo the last change
      */
     public void undo() {
-    	fileStruct = undoList.undo();
-    	saveFileAndpdateUIs(Labels.getString("undoFile"));
+	fileStruct = undoList.undo();
+	saveFileAndpdateUIs(Labels.getString("undoFile"));
     }
-    
+
     /**
      * Saves file and updates the UIs that have the file opened.
      * 
@@ -268,28 +299,34 @@ public class FileRegistration implements Serializable {
 	    listener.updatedFile(message);
 	}
     }
-    
+
     /**
      * Saves file
      */
     private void saveFile() {
 	// Save file
 	try {
-		getXMLDBManager(TextEditorUI.getCurrent().getUser()).addXMLFile(env,project,file,fileStruct.GenerateInnerXML().getBytes(StandardCharsets.UTF_8));
+	    getXMLDBManager(TextEditorUI.getCurrent().getUser()).addXMLFile(env, project, file, fileStruct.GenerateInnerXML().getBytes(StandardCharsets.UTF_8),false);
 	} catch (Exception e) {
-	    //TODO add message
-		TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE,"Error saving file \"" + file + "\"  for project \""+ env + "/" + project + "\".",true);
+	    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
 	}
     }
 
-    //TODO add javadoc
+    /**
+     * Returns if it is possible to make undo
+     * @return True if is possible to undo and false if not
+     */
     public boolean canUndo() {
-    	return undoList.canUndo();
+	return undoList.canUndo();
     }
 
-    //TODO add javadoc
+    /**
+     * Returns if it is possible to make redo
+     * @return True if is possible to redo and false if not
+     */
     public boolean canRedo() {
-    	return undoList.canRedo();
+	return undoList.canRedo();
     }
 
 }

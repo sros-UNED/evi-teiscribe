@@ -3,6 +3,7 @@ package com.application.components.TEITextStruct;
 import java.io.IOException;
 import java.io.Serializable;
 import java.io.StringReader;
+import java.util.logging.Level;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -16,6 +17,7 @@ import org.xml.sax.SAXException;
 import com.application.components.Constants;
 import com.application.components.Manager.FileManager;
 import com.application.language.Labels;
+import com.application.texteditor.TextEditorUI;
 import com.application.widgets.client.TextEditorElements.AttributeSenderStruct;
 import com.vaadin.ui.Notification;
 
@@ -73,14 +75,20 @@ public class TextStruct implements Serializable {
 
     /** Defines the next identifier value to use in the structure */
     private int numberOfNodes = 0;
-    
+
     /**
      * Generates a structure using a file as its source
-     * @param src Path of the file to use as source
-     * @param type Type of the file, can be {@link Constants#FILETYPE} for an XML file or {@link Constants#STRINGTYPE} for a Byte file.
-     * @throws IOException If any IO errors occur.
-     * @throws ParserConfigurationException If the file has an incorrect format.
-     * @throws SAXException If any parse errors occur.
+     * 
+     * @param src
+     *            Path of the file to use as source
+     * @param type
+     *            Type of the file, can be {@link Constants#FILETYPE} for an XML file or {@link Constants#STRINGTYPE} for a Byte file.
+     * @throws IOException
+     *             If any IO errors occur.
+     * @throws ParserConfigurationException
+     *             If the file has an incorrect format.
+     * @throws SAXException
+     *             If any parse errors occur.
      */
     public TextStruct(String src, int type) throws IOException, ParserConfigurationException, SAXException {
 	try {
@@ -89,10 +97,9 @@ public class TextStruct implements Serializable {
 	    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
 	    dbFactory.setIgnoringComments(true);
 	    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-	    if (type ==FILETYPE)
-	    {
+	    if (type == FILETYPE) {
 		doc = dBuilder.parse(src);
-	    } else if (type ==STRINGTYPE) {
+	    } else if (type == STRINGTYPE) {
 		doc = dBuilder.parse(new InputSource(new StringReader(src)));
 	    } else {
 		throw new IOException("No type defined.");
@@ -114,6 +121,11 @@ public class TextStruct implements Serializable {
 	    }
 	    // If there is an exception
 	} catch (Exception e) {
+	    if (type == FILETYPE) {
+		TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error creating the text structure from file \"" + src + "\".", true);
+	    } else {
+		TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error creating the text structure from string.", true);
+	    }
 	    throw e;
 	}
     }
@@ -146,34 +158,34 @@ public class TextStruct implements Serializable {
 	TextNode teiHeaderNode = new TextNode("teiHeader", "", numberOfNodes++);
 	TextMiddleNode teiHeaderMiddleNode = new TextMiddleNode("", teiHeaderNode);
 	rootNode.GetInnerLabels().add(teiHeaderMiddleNode);
-	// Create file Desc 
-    TextNode teiFileDescNode = new TextNode("fileDesc", "", numberOfNodes++);
-    TextMiddleNode teiFileDescMiddleNode = new TextMiddleNode("", teiFileDescNode);
-    teiHeaderNode.GetInnerLabels().add(teiFileDescMiddleNode);
-    // Create titleStmt
-    TextNode teiTitleStmtNode = new TextNode("titleStmt", "", numberOfNodes++);
-    TextMiddleNode teiTitleStmtMiddleNode = new TextMiddleNode("", teiTitleStmtNode);
-    teiFileDescNode.GetInnerLabels().add(teiTitleStmtMiddleNode);
-    // Create title
-    TextNode teiTitleNode = new TextNode("title", "Title", numberOfNodes++);
-    TextMiddleNode teiTitleMiddleNode = new TextMiddleNode("", teiTitleNode);
-    teiTitleStmtNode.GetInnerLabels().add(teiTitleMiddleNode);
-    // Create publicationStmt
-    TextNode teiPublicationStmtTitleNode = new TextNode("publicationStmt", "", numberOfNodes++);
-    TextMiddleNode teiPublicationStmtTitleMiddleNode = new TextMiddleNode("", teiPublicationStmtTitleNode);
-    teiFileDescNode.GetInnerLabels().add(teiPublicationStmtTitleMiddleNode);
-    // Create p
-    TextNode teiPPublicationStmtTitleNode = new TextNode("p", "Publication information", numberOfNodes++);
-    TextMiddleNode teiPPublicationStmtTitleMiddleNode = new TextMiddleNode("", teiPPublicationStmtTitleNode);
-    teiPublicationStmtTitleNode.GetInnerLabels().add(teiPPublicationStmtTitleMiddleNode);
-    // Create publicationStmt
-    TextNode teiSourceDescTitleNode = new TextNode("sourceDesc", "", numberOfNodes++);
-    TextMiddleNode teiSourceDescTitleMiddleNode = new TextMiddleNode("", teiSourceDescTitleNode);
-    teiFileDescNode.GetInnerLabels().add(teiSourceDescTitleMiddleNode);
-    // Create p
-    TextNode teiPSourceDescTitleNode = new TextNode("p", "Information about the source", numberOfNodes++);
-    TextMiddleNode teiPSourceDescTitleMiddleNode = new TextMiddleNode("", teiPSourceDescTitleNode);
-    teiSourceDescTitleNode.GetInnerLabels().add(teiPSourceDescTitleMiddleNode);
+	// Create file Desc
+	TextNode teiFileDescNode = new TextNode("fileDesc", "", numberOfNodes++);
+	TextMiddleNode teiFileDescMiddleNode = new TextMiddleNode("", teiFileDescNode);
+	teiHeaderNode.GetInnerLabels().add(teiFileDescMiddleNode);
+	// Create titleStmt
+	TextNode teiTitleStmtNode = new TextNode("titleStmt", "", numberOfNodes++);
+	TextMiddleNode teiTitleStmtMiddleNode = new TextMiddleNode("", teiTitleStmtNode);
+	teiFileDescNode.GetInnerLabels().add(teiTitleStmtMiddleNode);
+	// Create title
+	TextNode teiTitleNode = new TextNode("title", "Title", numberOfNodes++);
+	TextMiddleNode teiTitleMiddleNode = new TextMiddleNode("", teiTitleNode);
+	teiTitleStmtNode.GetInnerLabels().add(teiTitleMiddleNode);
+	// Create publicationStmt
+	TextNode teiPublicationStmtTitleNode = new TextNode("publicationStmt", "", numberOfNodes++);
+	TextMiddleNode teiPublicationStmtTitleMiddleNode = new TextMiddleNode("", teiPublicationStmtTitleNode);
+	teiFileDescNode.GetInnerLabels().add(teiPublicationStmtTitleMiddleNode);
+	// Create p
+	TextNode teiPPublicationStmtTitleNode = new TextNode("p", "Publication information", numberOfNodes++);
+	TextMiddleNode teiPPublicationStmtTitleMiddleNode = new TextMiddleNode("", teiPPublicationStmtTitleNode);
+	teiPublicationStmtTitleNode.GetInnerLabels().add(teiPPublicationStmtTitleMiddleNode);
+	// Create publicationStmt
+	TextNode teiSourceDescTitleNode = new TextNode("sourceDesc", "", numberOfNodes++);
+	TextMiddleNode teiSourceDescTitleMiddleNode = new TextMiddleNode("", teiSourceDescTitleNode);
+	teiFileDescNode.GetInnerLabels().add(teiSourceDescTitleMiddleNode);
+	// Create p
+	TextNode teiPSourceDescTitleNode = new TextNode("p", "Information about the source", numberOfNodes++);
+	TextMiddleNode teiPSourceDescTitleMiddleNode = new TextMiddleNode("", teiPSourceDescTitleNode);
+	teiSourceDescTitleNode.GetInnerLabels().add(teiPSourceDescTitleMiddleNode);
 	// Create new text node
 	TextNode teiTextNode = new TextNode("text", "", numberOfNodes++);
 	TextMiddleNode teiTextMiddleNode = new TextMiddleNode("", teiTextNode);
@@ -203,7 +215,7 @@ public class TextStruct implements Serializable {
     public String GenerateInnerTeiHeaderHTML() {
 	if (rootNode.GetInnerLabels().size() < 1) {
 	    // Show error
-	    Notification.show(Labels.getString("error"), Labels.getString("noHeaderBody"), Notification.Type.ERROR_MESSAGE);
+	    Notification.show(Labels.getString("error"), Labels.getString("noHeaderBody"), Notification.Type.TRAY_NOTIFICATION);
 	    createGenericHeaderText();
 	}
 	return rootNode.GetInnerLabels().get(0).GetNode().GenerateInnerHTML(true);
@@ -218,13 +230,13 @@ public class TextStruct implements Serializable {
 	// If there is no header, a generic body and header is created
 	if (rootNode.GetInnerLabels().size() < 1) {
 	    // Show error
-	    Notification.show(Labels.getString("error"), Labels.getString("noHeaderBody"), Notification.Type.ERROR_MESSAGE);
+	    Notification.show(Labels.getString("error"), Labels.getString("noHeaderBody"), Notification.Type.TRAY_NOTIFICATION);
 	    createGenericHeaderText();
 	}
 	// If there is no body, a generic one is created
 	if (rootNode.GetInnerLabels().size() < 2) {
 	    // Show error
-	    Notification.show(Labels.getString("error"), Labels.getString("noBody"), Notification.Type.ERROR_MESSAGE);
+	    Notification.show(Labels.getString("error"), Labels.getString("noBody"), Notification.Type.TRAY_NOTIFICATION);
 	    createGenericText();
 	}
 	if (rootNode.GetInnerLabels().size() > 2)
@@ -234,6 +246,7 @@ public class TextStruct implements Serializable {
 
     /**
      * Generates an XML file using this structure.
+     * 
      * @return string with the generated XML.
      */
     public String GenerateInnerXML() {
@@ -254,7 +267,7 @@ public class TextStruct implements Serializable {
      * @return Identifier number of the node added
      */
     public int AddNewLabel(String name, String value, int parent, String afterText) {
-	
+
 	int success = rootNode.AddLabel(name, value, parent, numberOfNodes, afterText);
 	if (success == 0) {
 	    numberOfNodes++;
@@ -343,7 +356,7 @@ public class TextStruct implements Serializable {
      *            Offset where the text ends.
      */
     public int createLabel(int parentId, String newLabelName, int beginTextId, int beginTextOffset, int endTextId, int endTextOffset) {
-	
+
 	int answer = rootNode.CreateLabel(parentId, newLabelName, beginTextId, beginTextOffset, endTextId, endTextOffset, numberOfNodes);
 	// If node inserted correctly, number of nodes increase by 1
 	if (answer == 0) {

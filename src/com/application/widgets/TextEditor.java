@@ -1,7 +1,10 @@
 package com.application.widgets;
 
+import java.util.logging.Level;
+
 import com.application.components.FileRegistration;
 import com.application.language.Labels;
+import com.application.texteditor.TextEditorUI;
 import com.application.widgets.client.TextEditor.TextEditorClientRpc;
 import com.application.widgets.client.TextEditor.TextEditorServerRpc;
 import com.application.widgets.client.TextEditor.TextEditorState;
@@ -29,14 +32,14 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
 
     /** The editor contains only the body */
     public static final int TYPE_TEXT = 2;
-    
+
     /** The editor contains only the body */
     public static final int TYPE_XML = 3;
 
     /** Manager of the text file */
     private FileRegistration fileReg;
 
-    /** Defines the type of text to show (header, body, all or xml)*/
+    /** Defines the type of text to show (header, body, all or xml) */
     public int typeOfText = 0;
 
     /**
@@ -45,7 +48,7 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
     private TextEditorServerRpc rpc = new TextEditorServerRpc() {
 	private static final long serialVersionUID = -6327578574297039944L;
 
-    //TODO add javadoc
+	@Override
 	public void getSubElements(String name) {
 	    sendSublabels(name);
 	}
@@ -78,7 +81,7 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
 		Notification.show(Labels.getString("problemModifyingText"), Type.ERROR_MESSAGE);
 	    }
 	}
-	
+
 	@Override
 	public void ModifyBeginningTextNoChanges(String innerText, int id) {
 	    // Modify beginning text
@@ -149,7 +152,12 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
 	modifyText("", true);
     }
 
-	//TODO add javadoc
+    /**
+     * RPC function to send labels that can be child of the label identified by the name inserted
+     * 
+     * @param name
+     *            Name of the label.
+     */
     protected void sendSublabels(String name) {
 	if (fileReg.manager != null) {
 	    getRpcProxy(TextEditorClientRpc.class).createLabelsPopupMenu(fileReg.manager.ExtractElements(name));
@@ -158,17 +166,22 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
 	}
     }
 
-    //TODO add javadoc
+    /**
+     * RPC function to send attributes that can be inside of the label identified by the name inserted
+     * 
+     * @param name
+     *            Name of the label.
+     */
     protected void sendAttributes(String name, int id) {
 	if (fileReg.manager != null) {
-		try {
-			getRpcProxy(TextEditorClientRpc.class).createAttributesPopupMenu(fileReg.manager.ExtractAttributeNames(name), id, name);
-		} catch (Exception e) {
-	        //TODO add message
-			getRpcProxy(TextEditorClientRpc.class).createAttributesPopupMenu(null, id, name);
-		}
-	} else {
+	    try {
+		getRpcProxy(TextEditorClientRpc.class).createAttributesPopupMenu(fileReg.manager.ExtractAttributeNames(name), id, name);
+	    } catch (Exception e) {
+		TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error creating attributes popup menu. " + e.getMessage() ,true);
 		getRpcProxy(TextEditorClientRpc.class).createAttributesPopupMenu(null, id, name);
+	    }
+	} else {
+	    getRpcProxy(TextEditorClientRpc.class).createAttributesPopupMenu(null, id, name);
 	}
     }
 
@@ -199,7 +212,7 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
 	    getRpcProxy(TextEditorClientRpc.class).modifyTextHTML(fileReg.fileStruct.GenerateInnerBodyHTML());
 	    break;
 	case TYPE_XML:
-	    getRpcProxy(TextEditorClientRpc.class).modifyTextHTML("<xmp>"+fileReg.fileStruct.GenerateInnerXML()+"</xmp>");
+	    getRpcProxy(TextEditorClientRpc.class).modifyTextHTML("<xmp>" + fileReg.fileStruct.GenerateInnerXML() + "</xmp>");
 	    break;
 	default:
 	    getRpcProxy(TextEditorClientRpc.class).modifyTextHTML(fileReg.fileStruct.GenerateInnerHTML());
@@ -236,13 +249,17 @@ public class TextEditor extends com.vaadin.ui.AbstractComponent {
 	modifyText(text, typeOfText);
     }
 
-	//TODO add javadoc
-	public void setCursorPosition() {
-		getRpcProxy(TextEditorClientRpc.class).setCursorPosition();
-	}
+    /**
+     * Recovers the saved position of the cursor
+     */
+    public void setCursorPosition() {
+	getRpcProxy(TextEditorClientRpc.class).setCursorPosition();
+    }
 
-	//TODO add javadoc
-	public void getCursorPosition() {
-		getRpcProxy(TextEditorClientRpc.class).getCursorPosition();
-	}
+    /**
+     * Saves the position of the cursor
+     */
+    public void getCursorPosition() {
+	getRpcProxy(TextEditorClientRpc.class).getCursorPosition();
+    }
 }

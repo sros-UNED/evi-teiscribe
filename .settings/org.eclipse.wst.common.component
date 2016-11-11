@@ -2,6 +2,7 @@
     <wb-module deploy-name="TextEditor">
         <wb-resource deploy-path="/" source-path="/WebContent" tag="defaultRootSource"/>
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src"/>
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/UMLS"/>
         <property name="context-root" value="TextEditor"/>
         <property name="java-output-path" value="/TextEditor/build/classes"/>
     </wb-module>

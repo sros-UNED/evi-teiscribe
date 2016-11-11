@@ -2,6 +2,9 @@ package com.application.language;
 
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
+import java.util.logging.Level;
+
+import com.application.texteditor.TextEditorUI;
 
 /**
  * Class to control the language of the system. A file with *.properties defines the language constants. The language is controlled automatically by the
@@ -33,6 +36,7 @@ public class Labels {
 	try {
 	    return RESOURCE_BUNDLE.getString(key);
 	} catch (MissingResourceException e) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error getting text \"" + key + "\" from languages library .", true);
 	    return '!' + key + '!';
 	}
     }

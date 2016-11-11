@@ -15,6 +15,7 @@ import com.vaadin.ui.UI;
 import com.application.components.Broadcaster;
 import com.application.components.Broadcaster.BroadcastListener;
 import com.application.components.Jwt;
+import com.application.components.LogFormatter;
 import com.application.components.XMLDBManager;
 import com.application.language.Labels;
 import com.application.views.EditionView;
@@ -30,8 +31,16 @@ import static com.application.components.Constants.EXISTUSER;
 import static com.application.components.Constants.EXISTPASS;
 import static com.application.components.Constants.SECRET;
 import static com.application.components.Constants.TEIDATABASEFOLDER;
+import static com.application.components.Constants.LOGGERFILE;
 
 import static com.application.components.Constants.getXMLDBManager;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.logging.FileHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Main class of the server.
@@ -46,6 +55,7 @@ import static com.application.components.Constants.getXMLDBManager;
 @Theme("texteditortheme")
 @JavaScript("vaadin://js/javascript.js")
 public class TextEditorUI extends UI implements BroadcastListener {
+
     private static final long serialVersionUID = 1L;
 
     private int UIStatus;
@@ -67,42 +77,44 @@ public class TextEditorUI extends UI implements BroadcastListener {
      */
     @Override
     protected void init(VaadinRequest request) {
+
 	/** Check the session */
 	String name = request.getParameter("session");
 	if (name == null) {
+	    logMessage(Level.SEVERE, "Error, no session defined.", false);
 	    updateView(new NotAutorizedView(), NOTATORIZEDVIEW, null);
 	    return;
 	} else {
 	    if (!name.equals(DEMOSESSION)) {
-	    	Jwt credentials = new Jwt();
-	    	boolean a = credentials.parseJWT(name,SECRET);
-	    	if ( a == false) {
-	    		updateView(new NotAutorizedView(), NOTATORIZEDVIEW, null);
-	    		return;
-	    	}
-	    	collection = credentials.collection;
-	    	environment = TEIDATABASEFOLDER;
-	    	user = credentials.user;
-	    	pass = credentials.pass;
+		Jwt credentials = new Jwt();
+		boolean a = credentials.parseJWT(name, SECRET);
+		if (a == false) {
+		    updateView(new NotAutorizedView(), NOTATORIZEDVIEW, null);
+		    return;
+		}
+		collection = credentials.collection;
+		environment = TEIDATABASEFOLDER;
+		user = credentials.user;
+		pass = credentials.pass;
 	    }
 	}
 	// Register for a persistent session a XMLDBManager if does not exist
 	if (getXMLDBManager(user) == null) {
 	    try {
-			VaadinServlet.getCurrent().getServletContext().setAttribute("XMLdataBaseManager"+user, new XMLDBManager(collection,user,pass));
-		} catch (Exception e) {
-			System.out.println("Error. Could not create XMDBManager. "+e.toString());
-			updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-			return;
-		}
-	}
-    try {
-		getXMLDBManager(user).createEnv(environment);
-	} catch (Exception e) {
-		System.out.println("Error. Could not create environment "+environment+". "+e.toString());
-		e.printStackTrace();
+		VaadinServlet.getCurrent().getServletContext().setAttribute("XMLdataBaseManager" + user, new XMLDBManager(collection, user, pass));
+	    } catch (Exception e) {
+		logMessage(Level.SEVERE, "Error. Could not create XMDBManager.", false);
 		updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
 		return;
+	    }
+	}
+	try {
+	    getXMLDBManager(user).createEnv(environment);
+	} catch (Exception e) {
+	    logMessage(Level.SEVERE, "Error. Could not create environment " + environment + ". ", false);
+	    e.printStackTrace();
+	    updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+	    return;
 	}
 	// Title of the web page
 	getPage().setTitle("TEIScribe");
@@ -134,8 +146,7 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	access(new Runnable() {
 	    @Override
 	    public void run() {
-		if (environment.equals(env))
-		{
+		if (environment.equals(env)) {
 		    ((FileSelectionView) getCurrent().view).updateProjectsLayout();
 		    Notification.show(Labels.getString("changedDB"), message, Type.TRAY_NOTIFICATION);
 		}
@@ -153,8 +164,7 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	access(new Runnable() {
 	    @Override
 	    public void run() {
-		if (environment.equals(env))
-		{
+		if (environment.equals(env)) {
 		    boolean updated = ((FileSelectionView) getCurrent().view).updatedFile(projectId);
 		    if (updated) {
 			Notification.show(Labels.getString("changedDB"), message, Type.TRAY_NOTIFICATION);
@@ -209,11 +219,11 @@ public class TextEditorUI extends UI implements BroadcastListener {
      *            id of the file linked to the UI. -1 if we don't enter in EditionView
      */
     public void setUIStatus(int uIStatus, String id) {
-    if (UIStatus == FILESELECTIONVIEW) {
-        // As leaving file selection view, remove listener from file selection view broadcaster
-        Broadcaster.unregisterFileSelectionView(this);
-    }
-    if (UIStatus == EDITIONVIEW) {
+	if (UIStatus == FILESELECTIONVIEW) {
+	    // As leaving file selection view, remove listener from file selection view broadcaster
+	    Broadcaster.unregisterFileSelectionView(this);
+	}
+	if (UIStatus == EDITIONVIEW) {
 	    Broadcaster.unregisterEditionView(fileId, this);
 	}
 	UIStatus = uIStatus;
@@ -239,46 +249,91 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	setUIStatus(type, id);
 	this.setContent(view);
     }
-    
+
     /**
      * Getter for environment name
+     * 
      * @return environment name
      */
-    public String getEnvironment(){
-    	return environment;
+    public String getEnvironment() {
+	return environment;
     }
-    
+
     /**
      * Getter for user name
+     * 
      * @return user name
      */
-    public String getUser(){
-    	return user;
+    public String getUser() {
+	return user;
     }
 
     /**
      * Getter for collection name
+     * 
      * @return collection name
      */
-    public String getCollection(){
-    	return collection;
+    public String getCollection() {
+	return collection;
     }
-    
+
     /**
      * Replaces invalid characters of a string
-     * @param input String to delete the characters
+     * 
+     * @param input
+     *            String to delete the characters
      * @return the string with the characters replaced and deleted
      */
     public String clearString(String input) {
 	input = input.trim();
-	input = input.replace('á','a').replace('à','a').replace('ä','a').replace('â','a').replace('ª','a').replace('Á','A').replace('À','A').replace('Â','A').replace('Ä','A');
-	input = input.replace('é','e').replace('è','e').replace('ë','e').replace('ê','e').replace('É','E').replace('È','E').replace('Ê','E').replace('Ë','E');
-	input = input.replace('í','i').replace('ì','i').replace('ï','i').replace('î','i').replace('Í','I').replace('Ì','I').replace('Î','I').replace('Ï','I');
-	input = input.replace('ó','o').replace('ò','o').replace('ö','o').replace('ô','o').replace('Ó','O').replace('Ò','O').replace('Ô','O').replace('Ö','O');
-	input = input.replace('ú','u').replace('ù','u').replace('ü','u').replace('û','u').replace('Ú','U').replace('Ù','U').replace('Û','U').replace('Ü','U');
-	input = input.replace('ç','c').replace('Ç','C').replace('ñ','n').replace('Ñ','N');
-	input = input.replaceAll("[¨|~|#|@|!|\\\\|\\||·|$|%|&|/|(|)|?|'|¡|¿|\\[|^|\\]|+|}|{|¨|´|>|<|;|,|:|\\s]","");
+	input = input.replace('á', 'a').replace('à', 'a').replace('ä', 'a').replace('â', 'a').replace('ª', 'a').replace('Á', 'A').replace('À', 'A')
+		.replace('Â', 'A').replace('Ä', 'A');
+	input = input.replace('é', 'e').replace('è', 'e').replace('ë', 'e').replace('ê', 'e').replace('É', 'E').replace('È', 'E').replace('Ê', 'E').replace('Ë',
+		'E');
+	input = input.replace('í', 'i').replace('ì', 'i').replace('ï', 'i').replace('î', 'i').replace('Í', 'I').replace('Ì', 'I').replace('Î', 'I').replace('Ï',
+		'I');
+	input = input.replace('ó', 'o').replace('ò', 'o').replace('ö', 'o').replace('ô', 'o').replace('Ó', 'O').replace('Ò', 'O').replace('Ô', 'O').replace('Ö',
+		'O');
+	input = input.replace('ú', 'u').replace('ù', 'u').replace('ü', 'u').replace('û', 'u').replace('Ú', 'U').replace('Ù', 'U').replace('Û', 'U').replace('Ü',
+		'U');
+	input = input.replace('ç', 'c').replace('Ç', 'C').replace('ñ', 'n').replace('Ñ', 'N');
+	input = input.replaceAll("[¨|~|#|@|!|\\\\|\\||·|$|%|&|/|(|)|?|'|¡|¿|\\[|^|\\]|+|}|{|¨|´|>|<|;|,|:|\\s]", "");
 	return input;
+    }
+
+    /**
+     * Creates an output message in the log file creating the log and after closing it and adding the date when was thrown.
+     * 
+     * @param level
+     *            Level of the message
+     * @param message
+     *            text to show
+     * @param inside
+     *            True if we are inside the project and false if the error is grabbing credentials
+     */
+    public void logMessage(Level level, String message, Boolean inside) {
+	Logger logger = Logger.getLogger("TeiScribe");
+	FileHandler fh = null;
+	try {
+
+	    // This block configure the logger with handler and formatter
+	    fh = new FileHandler(LOGGERFILE, true);
+	    logger.addHandler(fh);
+	    fh.setFormatter(new LogFormatter());
+	} catch (SecurityException ex) {
+	    ex.printStackTrace();
+	} catch (IOException e) {
+	    e.printStackTrace();
+	}
+	logger = Logger.getLogger("TeiScribe");
+	String outputMessage = "";
+	if (inside == true) {
+	    outputMessage = outputMessage + "[" + collection + "] ";
+	}
+	outputMessage = outputMessage + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss,SSS").format(new Date()) + " " + level.getName() + " " + message;
+	logger.log(level, outputMessage);
+	logger.removeHandler(fh);
+	fh.close();
     }
 
 }

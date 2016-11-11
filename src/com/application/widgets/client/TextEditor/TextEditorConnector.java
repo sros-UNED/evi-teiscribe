@@ -98,63 +98,63 @@ public class TextEditorConnector extends AbstractComponentConnector {
 		getWidget().modifyTEIText(innerHTML);
 	    }
 
-	    /* Set the cursor position*/
-		@Override
-		public void setCursorPosition() {
-			Element startingNode = Element.as(getWidget().getStartNode());
-			Element startingNodeParent = Element.as(startingNode.getParentElement());
-			cursorPosition.startingNodeId = startingNodeParent.getId();
-			cursorPosition.startingNodeLabel = startingNodeParent.getAttribute("label");
-			int nodes = startingNodeParent.getChildCount();
-			// Extract the child number
-			for (int i=0;i<nodes;i++) {
-				if (startingNodeParent.getChild(i).equals(startingNode)) {
-					cursorPosition.startingNodeChild = i;
-					i = nodes;
-				}
-			}
-			
-			Element endingNode = Element.as(getWidget().getEndNode());
-			Element endingNodeParent = Element.as(endingNode.getParentElement());
-			cursorPosition.endingNodeId = endingNodeParent.getId();
-			cursorPosition.endingNodeLabel = endingNodeParent.getAttribute("label");
-			nodes = endingNodeParent.getChildCount();
-			// Extract the child number
-			for (int i=0;i<nodes;i++) {
-				if (endingNodeParent.getChild(i).equals(endingNode)) {
-					cursorPosition.endingNodeChild = i;
-					i = nodes;
-				}
-			}
-			cursorPosition.startingOffset = getWidget().getStartSelection();
-			cursorPosition.endingOffset = getWidget().getEndSelection();
+	    /* Set the cursor position */
+	    @Override
+	    public void setCursorPosition() {
+		Element startingNode = Element.as(getWidget().getStartNode());
+		Element startingNodeParent = Element.as(startingNode.getParentElement());
+		cursorPosition.startingNodeId = startingNodeParent.getId();
+		cursorPosition.startingNodeLabel = startingNodeParent.getAttribute("label");
+		int nodes = startingNodeParent.getChildCount();
+		// Extract the child number
+		for (int i = 0; i < nodes; i++) {
+		    if (startingNodeParent.getChild(i).equals(startingNode)) {
+			cursorPosition.startingNodeChild = i;
+			i = nodes;
+		    }
 		}
 
-		@Override
-		public void getCursorPosition() {
-			//Check the starting node cursor position
-			Element startingNode = DOM.getElementById(cursorPosition.startingNodeId);
-			if (!startingNode.getAttribute("label").equals(cursorPosition.startingNodeLabel))
-			{
-				startingNode = DOM.getElementById("1");
-				getWidget().setPosition(startingNode,startingNode,1,1);
-				Window.alert(getState().lostCursor);
-				return;
-			}
-			//Check the ending node cursor position
-			Element endingNode = DOM.getElementById(cursorPosition.endingNodeId);
-			if (!endingNode.getAttribute("label").equals(cursorPosition.endingNodeLabel))
-			{
-				getWidget().setPosition(startingNode,startingNode,cursorPosition.startingOffset,cursorPosition.startingOffset);
-				Window.alert(getState().lostCursor);
-				return;
-			}
-			getWidget().setPosition(startingNode.getChild(cursorPosition.startingNodeChild),
-					DOM.getElementById(cursorPosition.endingNodeId).getChild(cursorPosition.endingNodeChild), 
-					cursorPosition.startingOffset, cursorPosition.endingOffset);
-			//Window.alert(cursorPosition.startingNodeLabel + " id " + cursorPosition.startingNodeId + " child " + cursorPosition.startingNodeChild + " offset " + cursorPosition.startingOffset + "\n\r" + 
-			//		cursorPosition.endingNodeLabel + " id " + cursorPosition.endingNodeId + " child " + cursorPosition.endingNodeChild + " offset " + cursorPosition.endingOffset);
+		Element endingNode = Element.as(getWidget().getEndNode());
+		Element endingNodeParent = Element.as(endingNode.getParentElement());
+		cursorPosition.endingNodeId = endingNodeParent.getId();
+		cursorPosition.endingNodeLabel = endingNodeParent.getAttribute("label");
+		nodes = endingNodeParent.getChildCount();
+		// Extract the child number
+		for (int i = 0; i < nodes; i++) {
+		    if (endingNodeParent.getChild(i).equals(endingNode)) {
+			cursorPosition.endingNodeChild = i;
+			i = nodes;
+		    }
 		}
+		cursorPosition.startingOffset = getWidget().getStartSelection();
+		cursorPosition.endingOffset = getWidget().getEndSelection();
+	    }
+
+	    @Override
+	    public void getCursorPosition() {
+		// Check the starting node cursor position
+		Element startingNode = DOM.getElementById(cursorPosition.startingNodeId);
+		if (!startingNode.getAttribute("label").equals(cursorPosition.startingNodeLabel)) {
+		    startingNode = DOM.getElementById("1");
+		    getWidget().setPosition(startingNode, startingNode, 1, 1);
+		    Window.alert(getState().lostCursor);
+		    return;
+		}
+		// Check the ending node cursor position
+		Element endingNode = DOM.getElementById(cursorPosition.endingNodeId);
+		if (!endingNode.getAttribute("label").equals(cursorPosition.endingNodeLabel)) {
+		    getWidget().setPosition(startingNode, startingNode, cursorPosition.startingOffset, cursorPosition.startingOffset);
+		    Window.alert(getState().lostCursor);
+		    return;
+		}
+		getWidget().setPosition(startingNode.getChild(cursorPosition.startingNodeChild),
+			DOM.getElementById(cursorPosition.endingNodeId).getChild(cursorPosition.endingNodeChild), cursorPosition.startingOffset,
+			cursorPosition.endingOffset);
+		// Window.alert(cursorPosition.startingNodeLabel + " id " + cursorPosition.startingNodeId + " child " + cursorPosition.startingNodeChild + "
+		// offset " + cursorPosition.startingOffset + "\n\r" +
+		// cursorPosition.endingNodeLabel + " id " + cursorPosition.endingNodeId + " child " + cursorPosition.endingNodeChild + " offset " +
+		// cursorPosition.endingOffset);
+	    }
 	});
 
 	/*
@@ -284,9 +284,11 @@ public class TextEditorConnector extends AbstractComponentConnector {
 
 	    // Extract the offsets and remove the space at the beginning
 	    beginTextOffset = getWidget().getStartSelection();
-	    if (beginTextOffset > 0) beginTextOffset--;
+	    if (beginTextOffset > 0)
+		beginTextOffset--;
 	    endTextOffset = getWidget().getEndSelection();
-	    if (endTextOffset > 0) endTextOffset--;
+	    if (endTextOffset > 0)
+		endTextOffset--;
 
 	} else {
 	    ClientHumanizedMessage.showMessageAndFadeAfterMouseMove(getState().badSelectionForLabelPopup, MESSAGE_TYPE.WARNING);
@@ -410,12 +412,11 @@ public class TextEditorConnector extends AbstractComponentConnector {
 		    Element modifiedText = Element.as(getWidget().getStartNode());
 		    // Check if we started with a backspace
 		    if (startingModifiedText != null) {
-		    	updateDeleteText();
-		    	startingModifiedText = null;
+			updateDeleteText();
+			startingModifiedText = null;
 		    }
 		    // Update the element where the selector is
 		    updateText(modifiedText);
-
 
 		    // Cancel the timer
 		    keyPressTimer.cancel();

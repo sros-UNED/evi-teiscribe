@@ -6,8 +6,10 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
 import java.text.DecimalFormat;
+import java.util.logging.Level;
 
 import com.application.language.Labels;
+import com.application.texteditor.TextEditorUI;
 import com.vaadin.server.ThemeResource;
 import com.vaadin.ui.Notification;
 import com.vaadin.ui.ProgressBar;
@@ -72,6 +74,7 @@ public class FileUploader implements Serializable {
 		    tempFile = File.createTempFile("newXML", ".xml");
 		    return new FileOutputStream(tempFile);
 		} catch (IOException e) {
+		    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error receiving file \"" + filename + "\". " + e.getMessage(), true);
 		    return null;
 		}
 	    }
@@ -145,12 +148,14 @@ public class FileUploader implements Serializable {
 		    tempFile.delete();
 		windowLayout.removeComponent(progressBar);
 		if (bigFile == true)
-		    Notification.show(Labels.getString("error"),
-			    Labels.getString("UploadFileTooBig") + " " + new DecimalFormat("##0.0").format((double) MAXUPLOADSIZE / (double) (1024 * 1024))
-				    + " " + Labels.getString("MegaBytes") + ".", Notification.Type.ERROR_MESSAGE);
-		else
+		    Notification.show(Labels.getString("error"), Labels.getString("UploadFileTooBig") + " "
+			    + new DecimalFormat("##0.0").format((double) MAXUPLOADSIZE / (double) (1024 * 1024)) + " " + Labels.getString("MegaBytes") + ".",
+			    Notification.Type.ERROR_MESSAGE);
+		else {
+		    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error receiving file \"" + event.getFilename() + "\".", true);
 		    Notification.show(Labels.getString("error"), Labels.getString("UploadFileFailed") + " \"" + event.getFilename() + "\".",
 			    Notification.Type.ERROR_MESSAGE);
+		}
 		// There is a problem when something fails, uploading afterwards will fail
 		UI.getCurrent().removeWindow(uploadWindow);
 	    }

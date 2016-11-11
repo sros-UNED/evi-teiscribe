@@ -48,11 +48,10 @@ public class DTDManager implements FileManager, Serializable {
     public DTDManager(String src, int type) throws Exception {
 	// Create an InputSource
 	InputSource source = null;
-	if (type ==FILETYPE)
-	{
-	    source = new InputSource(new InputStreamReader(new FileInputStream(src),StandardCharsets.UTF_8));
-	} else if (type ==STRINGTYPE) {
-	    source = new InputSource( new StringReader( src ) );
+	if (type == FILETYPE) {
+	    source = new InputSource(new InputStreamReader(new FileInputStream(src), StandardCharsets.UTF_8));
+	} else if (type == STRINGTYPE) {
+	    source = new InputSource(new StringReader(src));
 	} else {
 	    throw new Exception("No type defined.");
 	}
@@ -70,8 +69,6 @@ public class DTDManager implements FileManager, Serializable {
 	// Read the dtd file being external to the xml file
 	dtd = parser.parseExternalSubset(source, hashtableTEI);
     }
-    
-    
 
     /**
      * Gives the elementType that has the selected name
@@ -121,23 +118,12 @@ public class DTDManager implements FileManager, Serializable {
     }
 
     /**
-     * Returns a list of attributes of a label
-     * 
-     * @param name
-     *            Name of the Label to extract the attributes
-     * @return Enumeration of Strings with the names of the attributes
-     */
-    public Enumeration<Attribute> ExtractAttributes2(String name) {
-	return GetElement(name).attributes.elements();
-    }
-
-    /**
      * {@inheritDoc}
      */
     public ArrayList<String> ExtractAttributeNames(String name) {
 
 	ArrayList<String> arrayList = new ArrayList<String>();
-	Enumeration<Attribute> algo = ExtractAttributes2(name);
+	Enumeration<Attribute> algo = GetElement(name).attributes.elements();
 
 	if (algo.hasMoreElements()) {
 	    Attribute valor;
@@ -171,19 +157,19 @@ public class DTDManager implements FileManager, Serializable {
 	// Any content is allowed, so no checks
 	case ElementType.CONTENT_ANY:
 	    return "";
-	    // It must have no content inside
+	// It must have no content inside
 	case ElementType.CONTENT_EMPTY:
 	    if (!node.GetBeginningText().trim().isEmpty())
 		error += Labels.getString("illegalText") + "\n";
 	    if (!node.GetInnerLabels().isEmpty())
 		error += Labels.getString("noSubLabelsAlowed");
 	    return error;
-	    // Only text is allowed
+	// Only text is allowed
 	case ElementType.CONTENT_PCDATA:
 	    if (!node.GetInnerLabels().isEmpty())
 		error += Labels.getString("noSubLabelsAlowed");
 	    return error;
-	    // Only elements are allowed, no pcdata
+	// Only elements are allowed, no pcdata
 	case ElementType.CONTENT_ELEMENT:
 	    if (IsTextInNode(node))
 		error += Labels.getString("illegalText");

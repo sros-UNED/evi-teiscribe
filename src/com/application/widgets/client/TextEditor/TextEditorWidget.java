@@ -183,6 +183,13 @@ public class TextEditorWidget extends FocusPanel {
     	add(TEIText);
     }
 
+    /**
+     * Puts the cursor position as defined in the input parameters
+     * @param startNode Node where starts the selection
+     * @param endNode Node where ends the selection
+     * @param startOffset offset in the startNode where starts the selection
+     * @param endOffset offset in the endNode where ends the selection
+     */
     native void setPosition(Node startNode, Node endNode, int startOffset, int endOffset) /*-{
     	if ($doc.selection && $doc.selection.createRange) {
     		var range = $doc.selection.createRange();

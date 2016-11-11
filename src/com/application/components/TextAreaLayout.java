@@ -51,7 +51,7 @@ public class TextAreaLayout extends TabSheet {
 	addCustomTab(TextEditor.TYPE_TEI, "TEI", "TEITab");
 	addCustomTab(TextEditor.TYPE_HEADER, "Header", "headerTab");
 	addCustomTab(TextEditor.TYPE_TEXT, "Text", "textTab");
-	//TODO punto donde editar con xml el texto.
+	//TODO ZZZ punto donde editar con xml el texto.
 	//addCustomTab(TextEditor.TYPE_XML, "XML", "XMLTab");
     }
 

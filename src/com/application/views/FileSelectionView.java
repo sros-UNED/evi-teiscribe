@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.logging.Level;
 
 import org.vaadin.dialogs.ConfirmDialog;
 import org.xmldb.api.base.XMLDBException;
@@ -67,7 +68,6 @@ import static com.application.components.Constants.GENERICTEIFILE;
 import static com.application.components.Constants.MANUALICON;
 import static com.application.components.Constants.MANUALURL;
 
-
 /**
  * View to select, download and modify files, TEI schemas and projects.
  * 
@@ -76,12 +76,12 @@ import static com.application.components.Constants.MANUALURL;
  */
 public class FileSelectionView extends CustomComponent {
     private static final long serialVersionUID = -6179843137218755733L;
-    
+
     /** Name of the project */
     String activeProject = null;
     /** Class for uploading XML file */
     FileUploader fileUploader;
-    /** name of the environment*/
+    /** name of the environment */
     String env = null;
     /** Selection panel needed for updating the folders when inside */
     HorizontalSplitPanel fileSelectionPanel;
@@ -123,11 +123,12 @@ public class FileSelectionView extends CustomComponent {
 		    activeProject = project;
 		    // Update files in file layout
 		    try {
-				fileSelectionPanel.setSecondComponent(buildFilesLayout());
+			fileSelectionPanel.setSecondComponent(buildFilesLayout());
 		    } catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return;
-			}
+			TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error showing files inside the collection \"" + project + "\" in collection \"" + env + "/" + project + "\". ", true);
+			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			return;
+		    }
 		    // Light up the button changing the values of css and fade out the other.
 		    if (lastClickedButton != null)
 			lastClickedButton.removeStyleName("selected_project_button");
@@ -150,7 +151,6 @@ public class FileSelectionView extends CustomComponent {
 	// PathName to remember which file is linked to the class
 	final String fileData;
 	final String project_name;
-	
 
 	/**
 	 * Constructor that adds buttons
@@ -216,18 +216,20 @@ public class FileSelectionView extends CustomComponent {
 			    }
 			    // Rename the file in the database
 			    int response = ERROR;
-				try {
-					response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateFileName(env,newName, fileData, activeProject);
-				} catch (Exception e) {
-					TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-					return;
-				}
+			    try {
+				response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateFileName(env, newName, fileData, activeProject);
+			    } catch (Exception e) {
+				TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error renaming file \"" + fileData + "\" to name \"" + newName + "\" in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+				return;
+			    }
 			    // Check the response
 			    switch (response) {
 			    case FALSE:
 				Notification.show(Labels.getString("fileUpdateError"), Type.ERROR_MESSAGE);
 				break;
 			    case ERROR:
+				TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error renaming file \"" + fileData + "\" to name \"" + newName + "\" in collection \"" + env + "/" + activeProject + "\". Problem accessing database.", true);
 				Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 				// Close window
 				UI.getCurrent().removeWindow(renameFileWindow);
@@ -294,10 +296,11 @@ public class FileSelectionView extends CustomComponent {
 					// Delete file from database
 					int response = ERROR;
 					try {
-						response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).deleteFile(env, activeProject, fileData);
+					    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).deleteFile(env, activeProject, fileData);
 					} catch (Exception e) {
-						TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-						return;
+					    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error deleting file \"" + fileData + "\" in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+					    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+					    return;
 					}
 					// Check the response
 					switch (response) {
@@ -305,6 +308,7 @@ public class FileSelectionView extends CustomComponent {
 					    Notification.show(Labels.getString("fileDeleteError"), Type.ERROR_MESSAGE);
 					    break;
 					case ERROR:
+					    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error deleting file \"" + fileData + "\" in collection \"" + env + "/" + activeProject + "\". Problem accessing database.", true);
 					    Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 					    break;
 					case TRUE:
@@ -318,7 +322,7 @@ public class FileSelectionView extends CustomComponent {
 	    });
 	    return deleteButton;
 	}
-	
+
 	/**
 	 * Creates a new button for exporting file to teiSimple.
 	 * <p>
@@ -337,44 +341,44 @@ public class FileSelectionView extends CustomComponent {
 	    // Button click listener
 	    exportTeiSimpleButton.addClickListener(new ClickListener() {
 		private static final long serialVersionUID = 8219384411672278109L;
+
 		public void buttonClick(ClickEvent event) {
-			int response = ERROR;
-			// Delete file from database
-			try {
-				//Check if file is correct
-				FileManager manager = new DTDManager(new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getBinaryFile(env,activeProject, TEIPROJECTNAME), StandardCharsets.UTF_8),STRINGTYPE);
-				TextStruct fileStruct = new TextStruct(  new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getXMLFile(env,activeProject, fileData), StandardCharsets.UTF_8),STRINGTYPE);
-				int result = fileStruct.validateXMLStructure(manager);
-				if (result != 0) {
-					response = FALSE;
-				} else {
-				    String newName = TextEditorUI.getCurrent().clearString(TextEditorUI.getCurrent().getCollection()+"_"+project_name+"_"+fileData+".xml");
-				    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).exportTeiSimpleFileName(env, fileData, activeProject, newName);
-				    getUI().getPage().open("http://www.evilinhd.com:8888/exist/apps/tei-simple/test/"+newName+"?odd=myteisimple.odd", null);
-				}
-				
-			} catch (Exception e) {
-				System.out.println("Error");
-				e.printStackTrace();
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return;
+		    int response = ERROR;
+		    String newName = TextEditorUI.getCurrent().clearString(TextEditorUI.getCurrent().getCollection() + "_" + project_name + "_" + fileData + ".xml");
+		    // Delete file from database
+		    try {
+			// Check if file is correct
+			FileManager manager = new DTDManager(new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getBinaryFile(env, activeProject, TEIPROJECTNAME),StandardCharsets.UTF_8),STRINGTYPE);
+			TextStruct fileStruct = new TextStruct(	new String(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getXMLFile(env, activeProject, fileData),StandardCharsets.UTF_8),STRINGTYPE);
+			int result = fileStruct.validateXMLStructure(manager);
+			if (result != 0) {
+			    response = FALSE;
+			} else {
+			    
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).exportTeiSimpleFileName(env, fileData, activeProject, newName);
+			    getUI().getPage().open("http://www.evilinhd.com:8888/exist/apps/tei-simple/test/" + newName + "?odd=myteisimple.odd", null);
 			}
-			// Check the response
-			switch (response) {
-			case FALSE:
-			    Notification.show(Labels.getString("someErrorsNotExporting"), Type.ERROR_MESSAGE);
-			    break;
-			case ERROR:
-			    Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
-			    break;
-			case TRUE:
-			    break;
-			}
-		}});
+		    } catch (Exception e) {
+			TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error exporting file \"" + fileData + "\" in collection \"" + env + "/" + activeProject + "\" to teisimple collection \"" + newName + "\". " + e.getMessage(), true);
+			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			return;
+		    }
+		    // Check the response
+		    switch (response) {
+		    case FALSE:
+			Notification.show(Labels.getString("someErrorsNotExporting"), Type.ERROR_MESSAGE);
+			break;
+		    case ERROR:
+			TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error exporting file \"" + fileData + "\" in collection \"" + env + "/" + activeProject + "\" to teisimple collection \"" + newName + "\". Error accessing database.", true);
+			Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
+			break;
+		    case TRUE:
+			break;
+		    }
+		}
+	    });
 	    return exportTeiSimpleButton;
 	}
-	
-	
 
 	/**
 	 * Creates a new button for downloading the file.
@@ -398,11 +402,12 @@ public class FileSelectionView extends CustomComponent {
 		// Download file
 		public InputStream getStream() {
 		    try {
-				return new ByteArrayInputStream( getXMLDBManager(TextEditorUI.getCurrent().getUser()).getXMLFile(env, activeProject, fileData));
+			return new ByteArrayInputStream(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getXMLFile(env, activeProject, fileData));
 		    } catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return null;
-			}
+			TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error reading file \"" + fileData + "\" in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			return null;
+		    }
 		}
 	    }, fileData);
 	    // Link the stream resource with the button
@@ -440,11 +445,11 @@ public class FileSelectionView extends CustomComponent {
 	// fileSelectionPanel
 	HorizontalSplitPanel fileSelectionPanel;
 	try {
-		fileSelectionPanel = buildFileSelectionPanel();
+	    fileSelectionPanel = buildFileSelectionPanel();
 	} catch (Exception e) {
-		e.printStackTrace();
-		TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-		return;
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error building file selection view in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+	    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+	    return;
 	}
 	mainLayout.addComponent(fileSelectionPanel);
 	mainLayout.setExpandRatio(fileSelectionPanel, 1.0f);
@@ -460,7 +465,7 @@ public class FileSelectionView extends CustomComponent {
      * </p>
      * 
      * @return Panel that contains the projects an files
-     * @throws XMLDBException 
+     * @throws XMLDBException
      */
     private HorizontalSplitPanel buildFileSelectionPanel() throws XMLDBException {
 
@@ -484,12 +489,13 @@ public class FileSelectionView extends CustomComponent {
     /**
      * Updates the projectLayout without changing anything else and activates the project that was active.
      */
-    public void updateProjectsLayout(){
+    public void updateProjectsLayout() {
 	try {
-		fileSelectionPanel.setFirstComponent(buildProjectsLayout());
+	    fileSelectionPanel.setFirstComponent(buildProjectsLayout());
 	} catch (Exception e) {
-		TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-		return;
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating the list of projects. " + e.getMessage(), true);
+	    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+	    return;
 	}
     }
 
@@ -500,7 +506,7 @@ public class FileSelectionView extends CustomComponent {
      * </p>
      * 
      * @return Layout with the available projects
-     * @throws XMLDBException 
+     * @throws XMLDBException
      */
     public VerticalLayout buildProjectsLayout() throws XMLDBException {
 
@@ -571,7 +577,7 @@ public class FileSelectionView extends CustomComponent {
      * Creates the files layout with a title to modify the project and a table with all the files in the project.
      * 
      * @return layout with the files of the selected project or a layout with a label asking to choose a project
-     * @throws XMLDBException 
+     * @throws XMLDBException
      */
     private VerticalLayout buildFilesLayout() throws XMLDBException {
 
@@ -598,7 +604,7 @@ public class FileSelectionView extends CustomComponent {
      * Creates the title for the file layout with the buttons to modify the project.
      * 
      * @return Layout with a title with the project name and buttons to edit that layout.
-     * @throws XMLDBException 
+     * @throws XMLDBException
      */
     private HorizontalLayout menuFileSelectionTitle() throws XMLDBException {
 
@@ -640,7 +646,6 @@ public class FileSelectionView extends CustomComponent {
 	Button downloadTEIStructButton = downloadTEIStructButton();
 	projectTitleLayout.addComponent(downloadTEIStructButton);
 	projectTitleLayout.setComponentAlignment(downloadTEIStructButton, Alignment.MIDDLE_LEFT);
-	
 
 	// Add delete project button
 	Button deleteProjectButton = deleteProjectButton();
@@ -659,19 +664,19 @@ public class FileSelectionView extends CustomComponent {
      * </p>
      * 
      * @return Filled table for showing the files from selected project.
-     * @throws XMLDBException 
+     * @throws XMLDBException
      */
     private Table menuFileSelectionTable() throws XMLDBException {
 
 	// Create and configure table
 	Table table = new Table();
 	table.setItemDescriptionGenerator(new ItemDescriptionGenerator() {
-		private static final long serialVersionUID = -2094144754176362121L;
+	    private static final long serialVersionUID = -2094144754176362121L;
 
-		@Override
-		public String generateDescription(Component source, Object itemId, Object propertyId) {
-			return Labels.getString("RowClickToEnterInfo");
-		}
+	    @Override
+	    public String generateDescription(Component source, Object itemId, Object propertyId) {
+		return Labels.getString("RowClickToEnterInfo");
+	    }
 	});
 	table.setWidth("100%");
 	table.addStyleName("file_selection_table");
@@ -692,13 +697,16 @@ public class FileSelectionView extends CustomComponent {
 
 	// Read the files from the database using projectName
 	ArrayList<String> files = null;
-	files = getXMLDBManager(TextEditorUI.getCurrent().getUser()).getFilesFromProject(env,activeProject);
+	files = getXMLDBManager(TextEditorUI.getCurrent().getUser()).getFilesFromProject(env, activeProject);
 	int tablePointer = 0;
 	// Print all the files
 	for (String file : files) {
 	    // Add files to the table
-		table.addItem(new Object[] { file, new DecimalFormat("##0.0").format(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getSize(env,activeProject, file) / 1024) + " KB",
-		new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getLastModified(env,activeProject, file)), new ActionButtons(file, activeProject) }, tablePointer);
+	    table.addItem(new Object[] { file,
+		    new DecimalFormat("##0.0").format(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getSize(env, activeProject, file) / 1024) + " KB",
+		    new SimpleDateFormat("yyyy/MM/dd HH:mm:ss")
+			    .format(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getLastModified(env, activeProject, file)),
+		    new ActionButtons(file, activeProject) }, tablePointer);
 	    tablePointer++;
 	}
 	// Listener to open editor when a row is selected
@@ -709,17 +717,18 @@ public class FileSelectionView extends CustomComponent {
 	    public void itemClick(ItemClickEvent event) {
 		// Get the teiStruct
 		try {
-			if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkTEIStruct(env,activeProject) == FALSE) {
-			    Notification.show(Labels.getString("noTEILinked"), Type.ERROR_MESSAGE);
-			} else {
-			    // Extract the file direction from ActionButtons and ActiveProject
-			    String file = ((ActionButtons) event.getItem().getItemProperty(Labels.getString("columnActions")).getValue()).fileData;
-			    // Go to the edition view
-			    TextEditorUI.getCurrent().updateView(new EditionView(activeProject, file), EDITIONVIEW, env + "/" + activeProject + "/" + file);
-			}
+		    if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkTEIStruct(env, activeProject) == FALSE) {
+			Notification.show(Labels.getString("noTEILinked"), Type.ERROR_MESSAGE);
+		    } else {
+			// Extract the file direction from ActionButtons and ActiveProject
+			String file = ((ActionButtons) event.getItem().getItemProperty(Labels.getString("columnActions")).getValue()).fileData;
+			// Go to the edition view
+			TextEditorUI.getCurrent().updateView(new EditionView(activeProject, file), EDITIONVIEW, env + "/" + activeProject + "/" + file);
+		    }
 		} catch (Exception e) {
-			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-			return;
+		    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error reading schema file for collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+		    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+		    return;
 		}
 	    }
 	});
@@ -736,12 +745,11 @@ public class FileSelectionView extends CustomComponent {
 	// common part: create external bar layout
 	VerticalLayout barLayout = new VerticalLayout();
 	barLayout.setPrimaryStyleName("text_editor_outer_menu_layout");
-	
+
 	HorizontalLayout innerBarLayout = new HorizontalLayout();
 	innerBarLayout.setSizeUndefined();
 	innerBarLayout.setPrimaryStyleName("text_editor_inner_menu_layout");
 	barLayout.addComponent(innerBarLayout);
-	
 
 	// Add create project button
 	addCreateProjectButton(innerBarLayout);
@@ -749,7 +757,7 @@ public class FileSelectionView extends CustomComponent {
 
 	return barLayout;
     }
-    
+
     /**
      * Adds a button for reading the maunal
      * 
@@ -757,17 +765,17 @@ public class FileSelectionView extends CustomComponent {
      *            Layout where to insert the button
      */
     private void addReadManualButton(HorizontalLayout innerBarLayout) {
-    	Button buttonReadManual = new Button();
-    	buttonReadManual.setDescription(Labels.getString("ReadManualInfo"));
-    	buttonReadManual.setIcon(new ThemeResource(MANUALICON));
-    	buttonReadManual.setPrimaryStyleName("text_editor_read_manual_button");
-    	BrowserWindowOpener opener = new BrowserWindowOpener(MANUALURL);
-    	opener.setWindowName("_blank");
-    	// Attach it to a button
-    	opener.extend(buttonReadManual);
-    	innerBarLayout.addComponent(buttonReadManual);
+	Button buttonReadManual = new Button();
+	buttonReadManual.setDescription(Labels.getString("ReadManualInfo"));
+	buttonReadManual.setIcon(new ThemeResource(MANUALICON));
+	buttonReadManual.setPrimaryStyleName("text_editor_read_manual_button");
+	BrowserWindowOpener opener = new BrowserWindowOpener(MANUALURL);
+	opener.setWindowName("_blank");
+	// Attach it to a button
+	opener.extend(buttonReadManual);
+	innerBarLayout.addComponent(buttonReadManual);
     }
-    
+
     /**
      * Adds a button for creating a project
      * 
@@ -784,9 +792,9 @@ public class FileSelectionView extends CustomComponent {
 
 	// Button click listener
 	buttonCreateProject.addClickListener(new ClickListener() {
-		private static final long serialVersionUID = -8629878360771394304L;
+	    private static final long serialVersionUID = -8629878360771394304L;
 
-		public void buttonClick(ClickEvent event) {
+	    public void buttonClick(ClickEvent event) {
 
 		// Create a new sub-window for defining name
 		final Window renameProjectWindow = new Window(Labels.getString("createProjectName"));
@@ -814,10 +822,11 @@ public class FileSelectionView extends CustomComponent {
 			// Add project in the database
 			int response = ERROR;
 			try {
-				response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addProject(projectName, env);
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addProject(projectName, env);
 			} catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return;
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error adding collection \"" + env + "/" + projectName + "\". " + e.getMessage(), true);
+			    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    return;
 			}
 			// Check the response
 			switch (response) {
@@ -826,6 +835,7 @@ public class FileSelectionView extends CustomComponent {
 			    UI.getCurrent().removeWindow(renameProjectWindow);
 			    return;
 			case ERROR:
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error adding collection \"" + env + "/" + projectName + "\". Problem in database.", true);
 			    Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 			    UI.getCurrent().removeWindow(renameProjectWindow);
 			    return;
@@ -836,9 +846,10 @@ public class FileSelectionView extends CustomComponent {
 			UI.getCurrent().removeWindow(renameProjectWindow);
 			// Set TEI struct for project
 			try {
-				response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateProjectTEISchema(env,projectName, GENERICTEIFILE);
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateProjectTEISchema(env, projectName, GENERICTEIFILE);
 			} catch (Exception e) {
-				selectTEIStructure(projectName, true);
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error adding generic TEI schema to collection \"" + env + "/" + projectName + "\". " + e.getMessage(), true);
+			    selectTEIStructure(projectName, true);
 			}
 		    }
 		});
@@ -881,9 +892,9 @@ public class FileSelectionView extends CustomComponent {
 
 	// Button click listener
 	buttonCreateFile.addClickListener(new ClickListener() {
-		private static final long serialVersionUID = 1036219863936575973L;
+	    private static final long serialVersionUID = 1036219863936575973L;
 
-		public void buttonClick(ClickEvent event) {
+	    public void buttonClick(ClickEvent event) {
 
 		// Create a new sub-window for defining name
 		final Window newFileWindow = new Window(Labels.getString("createFileName"));
@@ -900,7 +911,7 @@ public class FileSelectionView extends CustomComponent {
 
 		    @Override
 		    public void buttonClick(ClickEvent event) {
-			
+
 			// Get the name and path of the file
 			String fileName = renameField.getValue();
 			// Don't allow empty name
@@ -908,37 +919,37 @@ public class FileSelectionView extends CustomComponent {
 			    Notification.show(Labels.getString("NoEmptyName"), Type.HUMANIZED_MESSAGE);
 			    return;
 			}
-			//Check if file already exists
+			// Check if file already exists
 			try {
-				if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkIfFileExists(env,activeProject,fileName)==TRUE)
-				{
-				    Notification.show(Labels.getString("error"),Labels.getString("fileAlreadyExists1") + 
-					    fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
-				    return;
-				}
-			} catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkIfFileExists(env, activeProject, fileName) == TRUE) {
+				Notification.show(Labels.getString("error"),Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
 				return;
+			    }
+			} catch (Exception e) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error checking if file \"" + fileName + "\" exists in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+			    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    return;
 			}
-			    
+
 			// Generate the file
 			TextStruct newFile = new TextStruct();
 
 			// Save the file
 			int response = ERROR;
 			try {
-				response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addXMLFile(env, activeProject, fileName, newFile.GenerateInnerXML().getBytes(StandardCharsets.UTF_8));
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addXMLFile(env, activeProject, fileName,newFile.GenerateInnerXML().getBytes(StandardCharsets.UTF_8),true);
 			} catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return;
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error creating file \"" + fileName + "\" in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+			    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    return;
 			}
-			
+
 			// Check if there was an error
 			if (response == ERROR) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error adding file \"" + fileName + "\" in collection \"" + env + "/" + activeProject + "\". Problem in database.", true);
 			    Notification.show(Labels.getString("error"), Labels.getString("DBError"), Type.ERROR_MESSAGE);
 			} else if (response == FALSE) {
-			    Notification.show(Labels.getString("error"),
-				    Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
+			    Notification.show(Labels.getString("error"),Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
 			}
 			// Close window
 			UI.getCurrent().removeWindow(newFileWindow);
@@ -993,22 +1004,22 @@ public class FileSelectionView extends CustomComponent {
 		    // When upload is done save the file and add to the project
 		    public int FileUploadedWork(File tempFile, String fileName) {
 
-			//Check if file already exists
+			// Check if file already exists
 			try {
-				if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkIfFileExists(env,activeProject,fileName)==TRUE)
-				{
-				    Notification.show(Labels.getString("error"),Labels.getString("fileAlreadyExists1") + 
-					    fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
-				    return ERROR;
-				}
-			} catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkIfFileExists(env, activeProject, fileName) == TRUE) {
+				Notification.show(Labels.getString("error"),
+					Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
 				return ERROR;
+			    }
+			} catch (Exception e) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error checking if file \"" + fileName + "\" exists in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+			    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    return ERROR;
 			}
-			
+
 			// Check if is an XML valid file
 			try {
-			    new TextStruct(tempFile.getCanonicalPath(),FILETYPE);
+			    new TextStruct(tempFile.getCanonicalPath(), FILETYPE);
 			} catch (Exception e) {
 			    tempFile.delete();
 			    Notification.show(Labels.getString("error"), Labels.getString("badXMLStructure"), Type.ERROR_MESSAGE);
@@ -1019,16 +1030,18 @@ public class FileSelectionView extends CustomComponent {
 			// Add to database
 			int response = ERROR;
 			try {
-			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addXMLFile(env, activeProject, fileName, Files.readAllBytes(tempFile.toPath()));
-			} catch (Exception e) {	}
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addXMLFile(env, activeProject, fileName,Files.readAllBytes(tempFile.toPath()),true);
+			} catch (Exception e) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error creating file \"" + fileName + "\" in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+			}
 			tempFile.delete();
 			fileUploader = null;
 			// Check if there was an error
 			if (response == ERROR) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error adding file \"" + fileName + "\" in collection \"" + env + "/" + activeProject + "\". Problem in database.", true);
 			    Notification.show(Labels.getString("error"), Labels.getString("DBError"), Type.ERROR_MESSAGE);
 			} else if (response == FALSE) {
-			    Notification.show(Labels.getString("error"),
-				    Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
+			    Notification.show(Labels.getString("error"), Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
 			}
 			return response;
 		    }
@@ -1070,7 +1083,7 @@ public class FileSelectionView extends CustomComponent {
      * Button to download TEI structure
      * 
      * @return A button to download TEI structure when clicking
-     * @throws XMLDBException 
+     * @throws XMLDBException
      */
     private Button downloadTEIStructButton() throws XMLDBException {
 
@@ -1080,7 +1093,7 @@ public class FileSelectionView extends CustomComponent {
 	buttonDownloadTEIStruct.setIcon(new ThemeResource(DOWNLOADXMLICON));
 	buttonDownloadTEIStruct.setPrimaryStyleName("text_editor_menu_button");
 	// Get the teiStruct
-	final int tei = getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkTEIStruct(env,activeProject);
+	final int tei = getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkTEIStruct(env, activeProject);
 	// If no possible to grab the tei values a DB error appears
 	if (tei == FALSE) {
 	    Notification.show(Labels.getString("noTEILinked"), Type.WARNING_MESSAGE);
@@ -1100,11 +1113,12 @@ public class FileSelectionView extends CustomComponent {
 
 		public InputStream getStream() {
 		    try {
-				return new ByteArrayInputStream(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getBinaryFile(env,activeProject, TEIPROJECTNAME));
+			return new ByteArrayInputStream(getXMLDBManager(TextEditorUI.getCurrent().getUser()).getBinaryFile(env, activeProject, TEIPROJECTNAME));
 		    } catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return null;
-			}
+			TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error getting schema for collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			return null;
+		    }
 		}
 	    }, TEIPROJECTNAME);
 	    // Link the stream resource with the button
@@ -1146,18 +1160,20 @@ public class FileSelectionView extends CustomComponent {
 				if (dialog.isConfirmed()) {
 				    // Remove the project
 				    int response = ERROR;
-					try {
-						response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).deleteProject(env,activeProject);
-					} catch (Exception e) {
-						TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-						return;
-					}
+				    try {
+					response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).deleteProject(env, activeProject);
+				    } catch (Exception e) {
+					TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error deleting collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+					TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+					return;
+				    }
 				    // Check the response
 				    switch (response) {
 				    case FALSE:
 					Notification.show(Labels.getString("projectDeleteError"), Type.ERROR_MESSAGE);
 					break;
 				    case ERROR:
+					TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error deleting collection \"" + env + "/" + activeProject + "\". Problem in database.", true);
 					Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 					break;
 				    case TRUE:
@@ -1218,10 +1234,11 @@ public class FileSelectionView extends CustomComponent {
 			// Change project name in database
 			int response = ERROR;
 			try {
-				response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateProjectName(env, newName, activeProject);
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateProjectName(env, newName, activeProject);
 			} catch (Exception e) {
-				TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-				return;
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error udating collection \"" + env + "/" + activeProject + "\" to \"" + env + "/" + newName + "\". " + e.getMessage(), true);
+			    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    return;
 			}
 			// Check the response
 			switch (response) {
@@ -1229,6 +1246,7 @@ public class FileSelectionView extends CustomComponent {
 			    Notification.show(Labels.getString("projectExists") + newName, Type.WARNING_MESSAGE);
 			    break;
 			case ERROR:
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error udating collection \"" + env + "/" + activeProject + "\" to \"" + env + "/" + newName + "\". Problem in database.", true);
 			    Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 			    break;
 			case TRUE:
@@ -1303,14 +1321,16 @@ public class FileSelectionView extends CustomComponent {
 	// Add all the projects from database
 	ArrayList<String> structs = null;
 	try {
-		structs = getXMLDBManager(TextEditorUI.getCurrent().getUser()).getTEIStructs(env);
+	    structs = getXMLDBManager(TextEditorUI.getCurrent().getUser()).getTEIStructs(env);
 	} catch (Exception e) {
-		TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-		return;
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error getting list of schemas. " + e.getMessage(), true);
+	    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+	    return;
 	}
 
 	// There was an error getting the projects
 	if (structs == null) {
+	    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error getting list of schemas. Problem in database.", true);
 	    Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 	    return;
 	} else {
@@ -1351,29 +1371,32 @@ public class FileSelectionView extends CustomComponent {
 
 			// Check if is a TEI valid file
 			try {
-			    new DTDManager(tempFile.getCanonicalPath(),FILETYPE);
+			    new DTDManager(tempFile.getCanonicalPath(), FILETYPE);
 			} catch (Exception e) {
+			    TextEditorUI.getCurrent().logMessage(Level.INFO, "Error updating schema. Schema bad formed. " + e.getMessage(), true);
 			    Notification.show(Labels.getString("error"), Labels.getString("UploadTEIStructError") + "\n" + e.getMessage(), Type.ERROR_MESSAGE);
 			    e.printStackTrace();
 			    tempFile.delete();
 			    fileUploader = null;
 			    return ERROR;
 			}
-			
+
 			// Add to database
 			int response = ERROR;
 			try {
-			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addBinaryFile(env,GENERICTEIPROJECT, fileName, new String(Files.readAllBytes(tempFile.toPath()), "UTF-8"));
-			} catch (Exception e) {	}
+			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).addBinaryFile(env, GENERICTEIPROJECT, fileName, new String(Files.readAllBytes(tempFile.toPath()), "UTF-8"));
+			} catch (Exception e) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error saving schema \"" + fileName + "\"." + e.getMessage(), true);
+			}
 			tempFile.delete();
 			fileUploader = null;
-			
+
 			// Check if there was an error
 			if (response == ERROR) {
+			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error saving schema \"" + fileName + "\". Problem in database.", true);
 			    Notification.show(Labels.getString("error"), Labels.getString("DBError"), Type.ERROR_MESSAGE);
 			} else if (response == FALSE) {
-			    Notification.show(Labels.getString("error"),
-				    Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
+			    Notification.show(Labels.getString("error"), Labels.getString("fileAlreadyExists1") + fileName + " " + Labels.getString("fileAlreadyExists2"), Type.ERROR_MESSAGE);
 			}
 			UI.getCurrent().removeWindow(changeTEIStructWindow);
 			selectTEIStructure(selectedProject, mandatory);
@@ -1417,13 +1440,15 @@ public class FileSelectionView extends CustomComponent {
 		// Update project with TEIStruct
 		int response = ERROR;
 		try {
-			response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateProjectTEISchema(env,selectedProject, tei);
+		    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).updateProjectTEISchema(env, selectedProject, tei);
 		} catch (Exception e) {
-			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-			return;
+		    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating schema \"" + tei + "\" for collection \"" + env + "/" + activeProject + "\"." + e.getMessage(), true);
+		    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+		    return;
 		}
 		// There was a problem with the database
 		if (response == ERROR) {
+		    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating schema \"" + tei + "\" for collection \"" + env + "/" + activeProject + "\". Problem in database." , true);
 		    Notification.show(Labels.getString("DBError"), Type.ERROR_MESSAGE);
 		}
 		UI.getCurrent().removeWindow(changeTEIStructWindow);
@@ -1446,10 +1471,11 @@ public class FileSelectionView extends CustomComponent {
 	if (activeProject != null) {
 	    if (activeProject.equals(projectId)) {
 		try {
-			fileSelectionPanel.setSecondComponent(buildFilesLayout());
+		    fileSelectionPanel.setSecondComponent(buildFilesLayout());
 		} catch (Exception e) {
-			TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
-			return false;
+		    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error updating list of files in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
+		    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+		    return false;
 		}
 		return true;
 	    }
