@@ -136,6 +136,7 @@ public class TextStruct implements Serializable {
     public TextStruct() {
 	// Create a new struct manually
 	rootNode = new TextNode("TEI", "", numberOfNodes);
+	rootNode.AddModifyAttribute("xmlns","http://www.tei-c.org/ns/1.0");
 	numberOfNodes++;
 	createGenericHeaderText();
     }
