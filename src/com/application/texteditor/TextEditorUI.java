@@ -103,7 +103,7 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	    try {
 		VaadinServlet.getCurrent().getServletContext().setAttribute("XMLdataBaseManager" + user, new XMLDBManager(collection, user, pass));
 	    } catch (Exception e) {
-		logMessage(Level.SEVERE, "Error. Could not create XMDBManager.", false);
+		logMessage(Level.SEVERE, "Error. Could not create XMDBManager. "+e.getMessage(), false);
 		updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
 		return;
 	    }
@@ -315,25 +315,27 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	Logger logger = Logger.getLogger("TeiScribe");
 	FileHandler fh = null;
 	try {
-
 	    // This block configure the logger with handler and formatter
 	    fh = new FileHandler(LOGGERFILE, true);
 	    logger.addHandler(fh);
 	    fh.setFormatter(new LogFormatter());
+	    logger = Logger.getLogger("TeiScribe");
+	    String outputMessage = "";
+	    if (inside == true) {
+		outputMessage = outputMessage + "[" + collection + "] ";
+	    }
+	    outputMessage = outputMessage + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss,SSS").format(new Date()) + " " + level.getName() + " " + message;
+	    logger.log(level, outputMessage);
+	    logger.removeHandler(fh);
+	    fh.close();
 	} catch (SecurityException ex) {
 	    ex.printStackTrace();
 	} catch (IOException e) {
 	    e.printStackTrace();
+	} catch (Exception e) {
+	    e.printStackTrace();
 	}
-	logger = Logger.getLogger("TeiScribe");
-	String outputMessage = "";
-	if (inside == true) {
-	    outputMessage = outputMessage + "[" + collection + "] ";
-	}
-	outputMessage = outputMessage + new SimpleDateFormat("yyyy-MM-dd hh:mm:ss,SSS").format(new Date()) + " " + level.getName() + " " + message;
-	logger.log(level, outputMessage);
-	logger.removeHandler(fh);
-	fh.close();
+	
     }
 
 }

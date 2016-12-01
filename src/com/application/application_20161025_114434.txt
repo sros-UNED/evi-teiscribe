@@ -1,3 +1,0 @@
-WARNING - 11:44:34: First conversion pass
-ERROR - 11:44:34: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; systemId: file:///TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.
-ERROR - 11:44:34: org.xml.sax.SAXParseExceptionpublicId: /TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; systemId: file:///TextEditor/src/com/application/components/dtdParser/utils/TokenList.java; lineNumber: 1; columnNumber: 1; El contenido no está permitido en el prólogo.

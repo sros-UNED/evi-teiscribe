@@ -76,18 +76,18 @@ public final class Constants {
     /** Database credentials*/
     
     //Production
-    public static final String EXISTCOLLECTION = "xmldb:exist://localhost:8888/exist/xmlrpc/db/apps/";
+    /*public static final String EXISTCOLLECTION = "xmldb:exist://localhost:8888/exist/xmlrpc/db/apps/";
     public static final String URISQL = "jdbc:mysql://localhost:3306/evi";
     public static final String USERSQL = "evimysql";
     public static final String PASSWORDSQL = "Hffk2!9k";
-    public static final String LOGGERFILE = "/var/log/evi.log";
+    public static final String LOGGERFILE = "/var/log/evi.log";*/
     
     //Devel
-    /*public static final String EXISTCOLLECTION = "xmldb:exist://evilinhd.com:8888/exist/xmlrpc/db/apps/";
+    public static final String EXISTCOLLECTION = "xmldb:exist://evilinhd.com:8888/exist/xmlrpc/db/apps/";
     public static final String URISQL = "jdbc:mysql://91.146.100.83:3306/evi";
     public static final String USERSQL = "murizar";
     public static final String PASSWORDSQL = "M4n8Arza";
-    public static final String LOGGERFILE = "C:\\LOG.TXT";*/
+    public static final String LOGGERFILE = "C:\\LOG.TXT";
     
     /** EVILINHD*/
     public static final String EXISTUSER = "admin";
