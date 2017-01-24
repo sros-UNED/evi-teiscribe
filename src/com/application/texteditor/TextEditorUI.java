@@ -329,10 +329,13 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	    logger.removeHandler(fh);
 	    fh.close();
 	} catch (SecurityException ex) {
+	    System.out.println("[TEISCRIBE] Error accediendo al fichero log ");
 	    ex.printStackTrace();
 	} catch (IOException e) {
+	    System.out.println("[TEISCRIBE] Error accediendo al fichero log ");
 	    e.printStackTrace();
 	} catch (Exception e) {
+	    System.out.println("[TEISCRIBE] Error accediendo al fichero log ");
 	    e.printStackTrace();
 	}
 	

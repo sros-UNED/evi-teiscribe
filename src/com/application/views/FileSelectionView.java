@@ -9,6 +9,7 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.logging.Level;
+import java.util.regex.Pattern;
 
 import org.vaadin.dialogs.ConfirmDialog;
 import org.xmldb.api.base.XMLDBException;
@@ -212,6 +213,10 @@ public class FileSelectionView extends CustomComponent {
 			    // If name is empty return and print name cannot be empty
 			    if (newName.isEmpty()) {
 				Notification.show(Labels.getString("NoEmptyName"), Type.HUMANIZED_MESSAGE);
+				return;
+			    }
+			    if (Pattern.compile("[\\w-._ ]+").matcher(newName).matches()== false) {
+				Notification.show(Labels.getString("NoStrangeCharacters"), Type.HUMANIZED_MESSAGE);
 				return;
 			    }
 			    // Rename the file in the database
@@ -819,6 +824,10 @@ public class FileSelectionView extends CustomComponent {
 			    Notification.show(Labels.getString("NoEmptyName"), Type.HUMANIZED_MESSAGE);
 			    return;
 			}
+			if (Pattern.compile("[\\w-._ ]+").matcher(projectName).matches()== false) {
+			    Notification.show(Labels.getString("NoStrangeCharacters"), Type.HUMANIZED_MESSAGE);
+			    return;
+			}
 			// Add project in the database
 			int response = ERROR;
 			try {
@@ -919,6 +928,10 @@ public class FileSelectionView extends CustomComponent {
 			    Notification.show(Labels.getString("NoEmptyName"), Type.HUMANIZED_MESSAGE);
 			    return;
 			}
+			if (Pattern.compile("[\\w-._ ]+").matcher(fileName).matches()== false) {
+			    Notification.show(Labels.getString("NoStrangeCharacters"), Type.HUMANIZED_MESSAGE);
+			    return;
+			}
 			// Check if file already exists
 			try {
 			    if (getXMLDBManager(TextEditorUI.getCurrent().getUser()).checkIfFileExists(env, activeProject, fileName) == TRUE) {
@@ -1014,6 +1027,13 @@ public class FileSelectionView extends CustomComponent {
 			} catch (Exception e) {
 			    TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error checking if file \"" + fileName + "\" exists in collection \"" + env + "/" + activeProject + "\". " + e.getMessage(), true);
 			    TextEditorUI.getCurrent().updateView(new ServiceNotAvailableView(), NOTATORIZEDVIEW, null);
+			    return ERROR;
+			}
+			
+			if (Pattern.compile("[\\w-._ ]+").matcher(fileName).matches()== false) {
+			    tempFile.delete();
+			    Notification.show(Labels.getString("error"), Labels.getString("NoStrangeCharacters"), Type.ERROR_MESSAGE);
+			    fileUploader = null;
 			    return ERROR;
 			}
 
@@ -1231,6 +1251,10 @@ public class FileSelectionView extends CustomComponent {
 			    Notification.show(Labels.getString("NoEmptyName"), Type.HUMANIZED_MESSAGE);
 			    return;
 			}
+			if (Pattern.compile("[\\w-._ ]+").matcher(newName).matches()== false) {
+			    Notification.show(Labels.getString("NoStrangeCharacters"), Type.HUMANIZED_MESSAGE);
+			    return;
+			}
 			// Change project name in database
 			int response = ERROR;
 			try {
@@ -1369,6 +1393,14 @@ public class FileSelectionView extends CustomComponent {
 		    // When upload is done save the file and add to the project
 		    public int FileUploadedWork(File tempFile, String fileName) {
 
+			//Check if it is a valid name
+			if (Pattern.compile("[\\w-._ ]+").matcher(fileName).matches()== false) {
+			    tempFile.delete();
+			    Notification.show(Labels.getString("error"), Labels.getString("NoStrangeCharacters"), Type.ERROR_MESSAGE);
+			    fileUploader = null;
+			    return ERROR;
+			}
+			
 			// Check if is a TEI valid file
 			try {
 			    new DTDManager(tempFile.getCanonicalPath(), FILETYPE);
