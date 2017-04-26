@@ -72,7 +72,7 @@ import static com.application.components.Constants.MANUALURL;
 /**
  * View to select, download and modify files, TEI schemas and projects.
  * 
- * @author Miguel Urízar Salinas
+ * @author Miguel Urï¿½zar Salinas
  *
  */
 public class FileSelectionView extends CustomComponent {
@@ -93,7 +93,7 @@ public class FileSelectionView extends CustomComponent {
     /**
      * Custom button class to also store the data of the project linked to it
      * 
-     * @author Miguel Urízar Salinas
+     * @author Miguel Urï¿½zar Salinas
      *
      */
     private class ProjectButton extends Button {
@@ -143,7 +143,7 @@ public class FileSelectionView extends CustomComponent {
     /**
      * Special layer with action buttons that stores the file path
      * 
-     * @author Miguel Urízar Salinas
+     * @author Miguel Urï¿½zar Salinas
      *
      */
     private class ActionButtons extends HorizontalLayout {
@@ -361,7 +361,7 @@ public class FileSelectionView extends CustomComponent {
 			} else {
 			    
 			    response = getXMLDBManager(TextEditorUI.getCurrent().getUser()).exportTeiSimpleFileName(env, fileData, activeProject, newName);
-			    getUI().getPage().open("http://www.evilinhd.com:8888/exist/apps/tei-simple/test/" + newName + "?odd=myteisimple.odd", null);
+			    getUI().getPage().open("http://www.evi3.uned.es:8888/exist/apps/tei-simple/test/" + newName + "?odd=myteisimple.odd", null);
 			}
 		    } catch (Exception e) {
 			TextEditorUI.getCurrent().logMessage(Level.SEVERE, "Error exporting file \"" + fileData + "\" in collection \"" + env + "/" + activeProject + "\" to teisimple collection \"" + newName + "\". " + e.getMessage(), true);

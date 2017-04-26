@@ -48,7 +48,7 @@ import java.util.logging.Logger;
  * New instance is generated when a client asks for the web page.
  * </p>
  * 
- * @author Miguel Urízar Salinas
+ * @author Miguel Urï¿½zar Salinas
  *
  */
 @Push
@@ -109,6 +109,7 @@ public class TextEditorUI extends UI implements BroadcastListener {
 	    }
 	}
 	try {
+		System.out.println();
 	    getXMLDBManager(user).createEnv(environment);
 	} catch (Exception e) {
 	    logMessage(Level.SEVERE, "Error. Could not create environment " + environment + ". ", false);
@@ -286,18 +287,18 @@ public class TextEditorUI extends UI implements BroadcastListener {
      */
     public String clearString(String input) {
 	input = input.trim();
-	input = input.replace('á', 'a').replace('à', 'a').replace('ä', 'a').replace('â', 'a').replace('ª', 'a').replace('Á', 'A').replace('À', 'A')
-		.replace('Â', 'A').replace('Ä', 'A');
-	input = input.replace('é', 'e').replace('è', 'e').replace('ë', 'e').replace('ê', 'e').replace('É', 'E').replace('È', 'E').replace('Ê', 'E').replace('Ë',
+	input = input.replace('ï¿½', 'a').replace('ï¿½', 'a').replace('ï¿½', 'a').replace('ï¿½', 'a').replace('ï¿½', 'a').replace('ï¿½', 'A').replace('ï¿½', 'A')
+		.replace('ï¿½', 'A').replace('ï¿½', 'A');
+	input = input.replace('ï¿½', 'e').replace('ï¿½', 'e').replace('ï¿½', 'e').replace('ï¿½', 'e').replace('ï¿½', 'E').replace('ï¿½', 'E').replace('ï¿½', 'E').replace('ï¿½',
 		'E');
-	input = input.replace('í', 'i').replace('ì', 'i').replace('ï', 'i').replace('î', 'i').replace('Í', 'I').replace('Ì', 'I').replace('Î', 'I').replace('Ï',
+	input = input.replace('ï¿½', 'i').replace('ï¿½', 'i').replace('ï¿½', 'i').replace('ï¿½', 'i').replace('ï¿½', 'I').replace('ï¿½', 'I').replace('ï¿½', 'I').replace('ï¿½',
 		'I');
-	input = input.replace('ó', 'o').replace('ò', 'o').replace('ö', 'o').replace('ô', 'o').replace('Ó', 'O').replace('Ò', 'O').replace('Ô', 'O').replace('Ö',
+	input = input.replace('ï¿½', 'o').replace('ï¿½', 'o').replace('ï¿½', 'o').replace('ï¿½', 'o').replace('ï¿½', 'O').replace('ï¿½', 'O').replace('ï¿½', 'O').replace('ï¿½',
 		'O');
-	input = input.replace('ú', 'u').replace('ù', 'u').replace('ü', 'u').replace('û', 'u').replace('Ú', 'U').replace('Ù', 'U').replace('Û', 'U').replace('Ü',
+	input = input.replace('ï¿½', 'u').replace('ï¿½', 'u').replace('ï¿½', 'u').replace('ï¿½', 'u').replace('ï¿½', 'U').replace('ï¿½', 'U').replace('ï¿½', 'U').replace('ï¿½',
 		'U');
-	input = input.replace('ç', 'c').replace('Ç', 'C').replace('ñ', 'n').replace('Ñ', 'N');
-	input = input.replaceAll("[¨|~|#|@|!|\\\\|\\||·|$|%|&|/|(|)|?|'|¡|¿|\\[|^|\\]|+|}|{|¨|´|>|<|;|,|:|\\s]", "");
+	input = input.replace('ï¿½', 'c').replace('ï¿½', 'C').replace('ï¿½', 'n').replace('ï¿½', 'N');
+	input = input.replaceAll("[ï¿½|~|#|@|!|\\\\|\\||ï¿½|$|%|&|/|(|)|?|'|ï¿½|ï¿½|\\[|^|\\]|+|}|{|ï¿½|ï¿½|>|<|;|,|:|\\s]", "");
 	return input;
     }
 

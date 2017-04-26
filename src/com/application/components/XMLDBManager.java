@@ -44,7 +44,7 @@ import org.exist.xquery.util.URIUtils;
 /**
  * Class for connecting to exist database
  * 
- * @author Miguel Urízar Salinas
+ * @author Miguel Urï¿½zar Salinas
  *
  */
 public class XMLDBManager implements Serializable {
@@ -90,6 +90,9 @@ public class XMLDBManager implements Serializable {
 	database.setProperty("create-database", "true");
 	DatabaseManager.registerDatabase(database);
 	col = DatabaseManager.getCollection(EXISTCOLLECTION, user, pass);
+	
+	//System.out.println("Valor de " +EXISTCOLLECTION);
+	
 	service = (XPathQueryService) col.getService("XPathQueryService", "1.0");
 	service.setProperty("pretty", "true");
 	service.setProperty("encoding", "ISO-8859-1");
